@@ -1,0 +1,8 @@
+Revision history for Finance-OFX-Parse-Simple
+
+0.02    23 January 2009
+        Updated the ACCTID regex for RT bug #42599 reported by wduncan.
+
+0.01    5 January 2009
+        First version.
+
