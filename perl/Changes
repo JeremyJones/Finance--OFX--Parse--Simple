@@ -1,5 +1,8 @@
 Revision history for Finance-OFX-Parse-Simple
 
+0.03    6 April 2010
+        Added parsing of TRNTYPE and CHECKNUM.
+
 0.02    23 January 2009
         Updated the ACCTID regex for RT bug #42599 reported by wduncan.
 
