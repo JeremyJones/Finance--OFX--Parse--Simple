@@ -8,11 +8,11 @@ Finance::OFX::Parse::Simple - Parse a simple OFX file or scalar
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -133,6 +133,16 @@ sub parse_scalar
 		    $s =~ m/<FITID>([^\r\n<]+)/s;
                     $1;
                 };
+		my $trntype = do
+		{
+		    $s =~ m/<TRNTYPE>([^\r\n<]+)/s;
+                    $1;
+                };
+		my $checknum = do
+		{
+		    $s =~ m/<CHECKNUM>([^\r\n<]+)/s;
+                    $1;
+                };
 		my $name = do
 		{
 		    $s =~ m/<NAME>([^\r\n<]+)/s;
@@ -148,6 +158,7 @@ sub parse_scalar
 		    $w;
 		};
 		push @{$this->{transactions}}, {amount => $amount, date => "$y-$m-$d",
+						checknum => $checknum, trntype => $trntype,
 						fitid  => $fitid,  name => $name, memo => $memo};
 	    }
 	}
