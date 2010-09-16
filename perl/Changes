@@ -1,5 +1,11 @@
 Revision history for Finance-OFX-Parse-Simple
 
+0.04    16 September 2010
+        Added localisation so that the decimal point character is read
+        from the system's locale instead of always a . (RT bug #61358 reported
+        by Conway Allen)
+	Added additional tests with sample OFX data.
+
 0.03    6 April 2010
         Added parsing of TRNTYPE and CHECKNUM.
 

@@ -8,11 +8,11 @@ Finance::OFX::Parse::Simple - Parse a simple OFX file or scalar
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
@@ -35,7 +35,7 @@ Create a new parser object.
 sub new
 {
     my $class = shift;
-    my $self  = bless {}, ref($class) || $class;
+    my $self  = bless({}, ref($class) || $class);
     return $self;
 }
 
@@ -89,6 +89,13 @@ sub parse_scalar
     my $ofx      = shift or return;
     my @results  = (); # to be returned
     
+    my $decimal_separator = do
+    {
+	eval 'use POSIX qw(locale_h)';
+	my $loc = eval {localeconv()} || {};
+	$loc->{mon_decimal_point} || $loc->{decimal_point} || '.';
+    };
+
   transaction_group:
     while ($ofx =~ m!(<STMTTRNRS>(.+?)</STMTTRNRS>)!sg)
     {
@@ -118,36 +125,20 @@ sub parse_scalar
 	    {
 		my $s = $1;
 		
-		my ($y,$m,$d) = do
-		{
-		    $s =~ m/<DTPOSTED>(\d\d\d\d)(\d\d)(\d\d)/s;
-                    ($1,$2,$3);
-                };
- 		my $amount = do
-		{
-		    $s =~ m/<TRNAMT>\s*(-|\+)?\s*((?:\d+(?:\.\d\d)?)|\.\d\d)/s;
-                    ($1 and $1 eq '-') ? abs($2) * -1 : sprintf("%.2f", $2);
-                };
-		my $fitid = do
-		{
-		    $s =~ m/<FITID>([^\r\n<]+)/s;
-                    $1;
-                };
-		my $trntype = do
-		{
-		    $s =~ m/<TRNTYPE>([^\r\n<]+)/s;
-                    $1;
-                };
-		my $checknum = do
-		{
-		    $s =~ m/<CHECKNUM>([^\r\n<]+)/s;
-                    $1;
-                };
-		my $name = do
-		{
-		    $s =~ m/<NAME>([^\r\n<]+)/s;
-                    $1;
-                };
+		my ($y,$m,$d) = $s =~ m/<DTPOSTED>(\d\d\d\d)(\d\d)(\d\d)/s ? ($1,$2,$3) : ('','','');
+
+ 		my $amount = $s =~ m/<TRNAMT>\s*([-+])?\s*
+		    ((?:\d+
+		      (?:\Q$decimal_separator\E\d\d)?)|\Q$decimal_separator\E\d\d)/sx
+		      ? ($1 and $1 eq '-') ? abs($2) * -1 : sprintf("%.2f", $2) : '';
+
+		my $fitid = $s =~ m/<FITID>([^\r\n<]+)/s ? $1 : '';
+
+		my $trntype = $s =~ m/<TRNTYPE>([^\r\n<]+)/s ? $1 : '';
+
+		my $checknum = $s =~ m/<CHECKNUM>([^\r\n<]+)/s ? $1 : '';
+
+		my $name = $s =~ m/<NAME>([^\r\n<]+)/s ? $1 : '';
 		my $memo = do
 		{
 		    my $w = "";
@@ -220,7 +211,7 @@ L<http://search.cpan.org/dist/Finance-OFX-Parse-Simple/>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Jeremy Jones, all rights reserved.
+Copyright 2009-10 Jeremy Jones, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
