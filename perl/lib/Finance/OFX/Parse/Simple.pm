@@ -8,11 +8,11 @@ Finance::OFX::Parse::Simple - Parse a simple OFX file or scalar
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
@@ -186,6 +186,10 @@ the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Finance-OF
 You can find documentation for this module with the perldoc command.
 
     perldoc Finance::OFX::Parse::Simple
+
+The latest version of this module is available on Github:
+
+    http://github.com/JeremyJones/Finance--OFX--Parse--Simple
 
 You can also look for information at:
 
