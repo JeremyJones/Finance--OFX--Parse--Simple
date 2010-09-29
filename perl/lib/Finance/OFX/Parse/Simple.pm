@@ -8,11 +8,11 @@ Finance::OFX::Parse::Simple - Parse a simple OFX file or scalar
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
@@ -89,7 +89,7 @@ sub parse_scalar
     my $ofx      = shift or return;
     my @results  = (); # to be returned
     
-    my $decimal_separator = do
+    my $decimal_separator = $ENV{MON_DECIMAL_POINT} || do
     {
 	eval 'use POSIX qw(locale_h)';
 	my $loc = eval {localeconv()} || {};
@@ -127,10 +127,23 @@ sub parse_scalar
 		
 		my ($y,$m,$d) = $s =~ m/<DTPOSTED>(\d\d\d\d)(\d\d)(\d\d)/s ? ($1,$2,$3) : ('','','');
 
- 		my $amount = $s =~ m/<TRNAMT>\s*([-+])?\s*
-		    ((?:\d+
-		      (?:\Q$decimal_separator\E\d\d)?)|\Q$decimal_separator\E\d\d)/sx
-		      ? ($1 and $1 eq '-') ? abs($2) * -1 : sprintf("%.2f", $2) : '';
+ 		my $amount = undef;
+
+		if ($s =~ m/<TRNAMT>\s*([-+])?\s*        # positive-negative sign $1
+		    (?:(\d+)                             # whole numbers $2
+		     (?:\Q$decimal_separator\E(\d\d)?)?  # optionally followed by fractional number $3
+		     |                                   # or
+		     \Q$decimal_separator\E(\d\d))       # just the fractional part $4
+		    /sx)
+		{
+		    my $posneg = $1 || "";
+		    my $whole  = $2 || 0;
+		    my $frac   = $3 || $4 || 0;
+
+		    $amount = sprintf("%.2f", ($whole + ($frac / 100)) * (($posneg eq '-') 
+									  ? -1 
+									  : 1));
+		}
 
 		my $fitid = $s =~ m/<FITID>([^\r\n<]+)/s ? $1 : '';
 
