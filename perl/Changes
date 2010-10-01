@@ -1,5 +1,9 @@
 Revision history for Finance-OFX-Parse-Simple
 
+0.06    1 October 2010
+        Allow the decimal separator to be overridden with the
+        environment variable MON_DECIMAL_POINT
+
 0.05    16 September 2010
         Minor changes for re-upload to CPAN.
 
