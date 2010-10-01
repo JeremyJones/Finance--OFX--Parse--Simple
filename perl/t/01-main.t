@@ -68,3 +68,20 @@ ok( (ref($parser->parse_scalar($ofx_data)->[0]) eq 'HASH'),
 
 ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{name} eq "Transaction $$"),
     "OFX data is parsed correctly");
+
+{
+    $ofx_data =~ s/(<TRNAMT>\d+)\./$1,/sg or die;
+
+    local $ENV{MON_DECIMAL_POINT} = ','; 
+
+    ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{name} eq "Transaction $$"),
+	"OFX data is parsed correctly with alternate decimal point character");
+
+    my $m = $parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{amount};
+    
+    ok($m == 36.05,
+       "OFX amounts are parsed correctly with alternate decimal point character");
+}
+
+
+

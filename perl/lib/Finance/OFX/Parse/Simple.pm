@@ -8,11 +8,11 @@ Finance::OFX::Parse::Simple - Parse a simple OFX file or scalar
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
@@ -89,7 +89,7 @@ sub parse_scalar
     my $ofx      = shift or return;
     my @results  = (); # to be returned
     
-    my $decimal_separator = do
+    my $decimal_separator = $ENV{MON_DECIMAL_POINT} || do
     {
 	eval 'use POSIX qw(locale_h)';
 	my $loc = eval {localeconv()} || {};
@@ -127,10 +127,23 @@ sub parse_scalar
 		
 		my ($y,$m,$d) = $s =~ m/<DTPOSTED>(\d\d\d\d)(\d\d)(\d\d)/s ? ($1,$2,$3) : ('','','');
 
- 		my $amount = $s =~ m/<TRNAMT>\s*([-+])?\s*
-		    ((?:\d+
-		      (?:\Q$decimal_separator\E\d\d)?)|\Q$decimal_separator\E\d\d)/sx
-		      ? ($1 and $1 eq '-') ? abs($2) * -1 : sprintf("%.2f", $2) : '';
+ 		my $amount = undef;
+
+		if ($s =~ m/<TRNAMT>\s*([-+])?\s*        # positive-negative sign $1
+		    (?:(\d+)                             # whole numbers $2
+		     (?:\Q$decimal_separator\E(\d\d)?)?  # optionally followed by fractional number $3
+		     |                                   # or
+		     \Q$decimal_separator\E(\d\d))       # just the fractional part $4
+		    /sx)
+		{
+		    my $posneg = $1 || "";
+		    my $whole  = $2 || 0;
+		    my $frac   = $3 || $4 || 0;
+
+		    $amount = sprintf("%.2f", ($whole + ($frac / 100)) * (($posneg eq '-') 
+									  ? -1 
+									  : 1));
+		}
 
 		my $fitid = $s =~ m/<FITID>([^\r\n<]+)/s ? $1 : '';
 
@@ -158,15 +171,25 @@ sub parse_scalar
     return \@results;
 }
 
-=head1 WARNING
+=head1 NOTES
 
-From Finance::Bank::LloydsTSB:
+The decimal point character (e.g. . or ,) can be configured before
+parsing OFX data so that it is handled correctly:
 
-This is code for online banking, and that means your money, and that
-means BE CAREFUL. You are encouraged, nay, expected, to audit the
-source of this module yourself to reassure yourself that I am not
-doing anything untoward with your banking data. This software is
-useful to me, but is provided under NO GUARANTEE, explicit or implied.
+If the environment variable MON_DECIMAL_POINT exists then this is used
+as the decimal point separator. Failing that, the module will try to
+use the locale setting of the local system, through the POSIX
+module. As a last resort a . is used as the separator.
+
+If you are working with OFX data from multiple sources, you can
+control the separator by setting the MON_DECIMAL_POINT environment
+variable before parsing each dataset, e.g.:
+
+ $ENV{MON_DECIMAL_POINT} = '.';
+ my $transactions_in_america = $parser->parse_file("bank-of-america.ofx");
+
+ local $ENV{MON_DECIMAL_POINT} = ',';
+ my $transactions_in_germany = $parser->parse_file("deutsche-bank.ofx");
 
 =head1 AUTHOR
 
@@ -174,11 +197,7 @@ Jeremy Jones, C<< <jjones at cpan.org> >>
 
 =head1 BUGS
 
-This module is intended to be fit-for-purpose, that purpose being simple parsing of real-world OFX files
-as provided for download by online banking systems. For more thorough and better treatment of your OFX 
-data see Finance::OFX::Parse.
-
-Please report any bugs or feature requests to C<bug-finance-ofx-parse-simple at rt.cpan.org>, or through
+Please report bugs and feature requests to C<bug-finance-ofx-parse-simple at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Finance-OFX-Parse-Simple>. 
 
 =head1 SUPPORT
