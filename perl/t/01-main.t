@@ -49,6 +49,13 @@ my $ofx_data = qq[<OFX>
 		  <FITID>+20080603000001
 		  <NAME>Transaction $$
 		  </STMTTRN>
+		  <STMTTRN>
+		  <TRNTYPE>OTHER
+		  <DTPOSTED>20080603000000[-5:EST]
+		  <TRNAMT>36.5
+		  <FITID>+20080603000001
+		  <NAME>Transaction $$
+		  </STMTTRN>
 		  </BANKTRANLIST>
 		  <LEDGERBAL>
 		  <BALAMT>1668.75
@@ -68,6 +75,9 @@ ok( (ref($parser->parse_scalar($ofx_data)->[0]) eq 'HASH'),
 
 ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{name} eq "Transaction $$"),
     "OFX data is parsed correctly");
+
+ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[1]->{amount} eq "36.50"),
+    "OFX partial decimal data is parsed correctly");
 
 {
     $ofx_data =~ s/(<TRNAMT>\d+)\./$1,/sg or die;

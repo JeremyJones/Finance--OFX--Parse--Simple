@@ -131,16 +131,16 @@ sub parse_scalar
 
 		if ($s =~ m/<TRNAMT>\s*([-+])?\s*        # positive-negative sign $1
 		    (?:(\d+)                             # whole numbers $2
-		     (?:\Q$decimal_separator\E(\d\d)?)?  # optionally followed by fractional number $3
+		     (?:\Q$decimal_separator\E(\d\d?)?)? # optionally followed by fractional number $3
 		     |                                   # or
-		     \Q$decimal_separator\E(\d\d))       # just the fractional part $4
+		     \Q$decimal_separator\E(\d\d?))      # just the fractional part $4
 		    /sx)
 		{
 		    my $posneg = $1 || "";
 		    my $whole  = $2 || 0;
 		    my $frac   = $3 || $4 || 0;
 
-		    $amount = sprintf("%.2f", ($whole + ($frac / 100)) * (($posneg eq '-') 
+		    $amount = sprintf("%.2f", ($whole + ("0.$frac" / 1)) * (($posneg eq '-') 
 									  ? -1 
 									  : 1));
 		}
