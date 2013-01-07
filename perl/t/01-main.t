@@ -67,31 +67,52 @@ my $ofx_data = qq[<OFX>
 		  </OFX>
 		  ];
 
+my $txn1 = $parser->parse_scalar($ofx_data)->[0]->{transactions}->[0];
+my $txn2 = $parser->parse_scalar($ofx_data)->[0]->{transactions}->[1];
+
 ok( (ref($parser->parse_scalar($ofx_data)) eq 'ARRAY'),
     "Parse scalar returns a list reference");
 
 ok( (ref($parser->parse_scalar($ofx_data)->[0]) eq 'HASH'),
     "Parser's list reference contains hash references");
 
-ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{name} eq "Transaction $$"),
+ok( ($txn1->{name} eq "Transaction $$"),
     "OFX data is parsed correctly");
 
-ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[1]->{amount} eq "36.50"),
+ok( ($txn2->{amount} eq "36.50"),
     "OFX partial decimal data is parsed correctly");
 
 {
     $ofx_data =~ s/(<TRNAMT>\d+)\./$1,/sg or die;
 
-    local $ENV{MON_DECIMAL_POINT} = ','; 
+    local $ENV{MON_DECIMAL_POINT} = ',';
 
     ok( ($parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{name} eq "Transaction $$"),
 	"OFX data is parsed correctly with alternate decimal point character");
 
     my $m = $parser->parse_scalar($ofx_data)->[0]->{transactions}->[0]->{amount};
-    
+
     ok($m == 36.05,
        "OFX amounts are parsed correctly with alternate decimal point character");
 }
 
 
+# Basic tests for parsing <CCSTMTTRNRS> transactions
+{
+    local $ENV{MON_DECIMAL_POINT} = ',';
 
+    (my $cc_ofx_data = $ofx_data) =~ s!(</?)(STMTTRNRS>)!$1CC$2!g;
+
+    my $cc_parsed = $parser->parse_scalar($cc_ofx_data);
+    my $cctxn1 = $cc_parsed->[0]->{transactions}->[0];
+    my $cctxn2 = $cc_parsed->[0]->{transactions}->[1];
+
+    ok( (ref($cc_parsed) eq 'ARRAY'),
+        "Parse scalar returns a list reference");
+
+    ok( (ref($cc_parsed->[0]) eq 'HASH'),
+        "Parser's list reference contains hash references");
+
+    is $cctxn1->{name}, $txn1->{name}, "Name parse ok";
+    is $cctxn2->{amount}, $txn2->{amount}, "Amount parse ok";
+}

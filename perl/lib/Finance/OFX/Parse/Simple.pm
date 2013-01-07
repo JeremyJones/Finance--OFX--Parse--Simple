@@ -97,7 +97,7 @@ sub parse_scalar
     };
 
   transaction_group:
-    while ($ofx =~ m!(<STMTTRNRS>(.+?)</STMTTRNRS>)!sg)
+    while ($ofx =~ m!(<(?:CC)?STMTTRNRS>(.+?)</(?:CC)?STMTTRNRS>)!sg)
     {
 	my ($all,$statements) = ($1,$2);
 
