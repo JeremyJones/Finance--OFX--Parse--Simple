@@ -3,6 +3,11 @@ Finance-OFX-Parse-Simple
 This module provides simple parsing of OFX files, either by filename
 or directly as scalars.
 
+Note that this module is primarily intended for the OFX files from
+bank statements rather than credit card statements. Any patches to
+make this module fully-compliant with the credit card statement style
+of OFX files would be gratefully received.
+
 INSTALLATION
 
 To install this module, run the following commands:
@@ -40,7 +45,7 @@ You can also find information at:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2010 Jeremy Jones
+Copyright (c) 2010-2014 Jeremy Jones
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Finance-OFX-Parse-Simple
-version:            0.06
+version:            0.07
 abstract:           Parse a simple OFX file or scalar
 author:
     - Jeremy Jones <jjones@cpan.org>
