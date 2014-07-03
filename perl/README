@@ -12,27 +12,31 @@ To install this module, run the following commands:
 	make test
 	make install
 
-SUPPORT AND DOCUMENTATION
+DOCUMENTATION
 
 After installing, you can find documentation for this module with the
 perldoc command.
 
     perldoc Finance::OFX::Parse::Simple
 
-You can also look for information at:
-
-    RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Finance-OFX-Parse-Simple
-
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Finance-OFX-Parse-Simple
-
-    CPAN Ratings
-        http://cpanratings.perl.org/d/Finance-OFX-Parse-Simple
+You can also find module information at:
 
     Search CPAN
         http://search.cpan.org/dist/Finance-OFX-Parse-Simple/
 
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Finance-OFX-Parse-Simple
+
+SUPPORT
+
+Please submit bug reports and requests through Github's issue tracker
+for this module at 
+    https://github.com/JeremyJones/Finance--OFX--Parse--Simple/issues
+
+You can also find information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Finance-OFX-Parse-Simple
 
 COPYRIGHT AND LICENCE
 
