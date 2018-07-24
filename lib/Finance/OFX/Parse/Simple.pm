@@ -8,11 +8,11 @@ Finance::OFX::Parse::Simple - Parse a simple OFX file or scalar
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
@@ -96,6 +96,18 @@ sub parse_scalar
 	$loc->{mon_decimal_point} || $loc->{decimal_point} || '.';
     };
 
+    # Grab the FID if it exists. For credit card statements, this will exist in
+    # place of the BANKID and it will be used instead.
+    my $FID = undef;
+    my $ACCTTYPE = undef;
+    if($ofx =~ m/.*<FID>(\d*)<.*/) {
+    $FID=$1;
+    $ACCTTYPE = 'Credit Card';
+    } elsif($ofx =~ m/.*<FI>\s*<ORG>(.+)<\/ORG>\s*<\/FI>/) {
+    $FID=$1;
+    $ACCTTYPE = 'Credit Card';
+    }
+
   transaction_group:
     while ($ofx =~ m!(<(?:CC)?STMTTRNRS>(.+?)</(?:CC)?STMTTRNRS>)!sg)
     {
@@ -117,15 +129,70 @@ sub parse_scalar
 
 	$this->{account_id} = $account_id;
 
+    my $bank_id = do
+    {
+       my $aa = 0;
+
+       if ($all =~ m:<BANKID>([^<]+?)\s*<:s)
+       {
+       $aa = $1;
+       }
+       if($aa == 0 && defined($FID)) {
+       $aa = $FID;
+       }
+        $aa;
+    }
+    or do {warn "No BANKID found"; next transaction_group};
+
+    $this->{bank_id} = $bank_id;
+
+    my $balance_info = do
+    {
+       my $aa = "";
+       my $bal = undef;
+       my $date= undef;
+
+        if ($all =~ m:<LEDGERBAL>(.*)</LEDGERBAL>:s)
+        {
+           $aa = $1;
+           $aa =~ s/\s*//g;
+           ($bal = $aa) =~ s/.*<BALAMT>([-+]?\d+\.?\d*).*/$1/;
+           ($date = $aa) =~ s/.*<DTASOF>(\d+\.?\d*).*/$1/;
+        }
+       {balance => $bal, date => $date};
+    }
+    or do {warn "No LEDGERBAL found"; next transaction_group};
+
+    $this->{balance_info} = $balance_info;
+
+    my $acct_type = do
+    {
+        my $aa = 0;
+
+        if ($all =~ m:<ACCTTYPE>([^<]+?)\s*<:s)
+        {
+        $aa = $1;
+        } elsif(defined($ACCTTYPE)) {
+        $aa = $ACCTTYPE;
+        }
+        $aa;
+    }
+    or do {warn "No ACCTTYPE found"; next transaction_group};
+
+    $this->{acct_type} = $acct_type;
+
 	while ($statements =~ m/<BANKTRANLIST>(.+?)<\/BANKTRANLIST>/sg)
 	{
 	    my $trans = $1;
+        if($trans =~ m/<DTEND>(\d+)/g) {
+        $this->{endDate} = $1;
+        }
 
 	    while ($trans =~ m/<STMTTRN>(.+?)<\/STMTTRN>/sg)
 	    {
 		my $s = $1;
 		
-		my ($y,$m,$d) = $s =~ m/<DTPOSTED>(\d\d\d\d)(\d\d)(\d\d)/s ? ($1,$2,$3) : ('','','');
+        my ($y,$m,$d) = $s =~ m/<DTPOSTED>\s*(\d\d\d\d)(\d\d)(\d\d)/s ? ($1,$2,$3) : ('','','');
 
  		my $amount = undef;
 
